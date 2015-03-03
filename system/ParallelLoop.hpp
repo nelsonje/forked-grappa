@@ -222,7 +222,7 @@ namespace Grappa {
   namespace impl {
   
     template< TaskMode B, SyncMode S, GlobalCompletionEvent * C, int64_t Threshold, typename F >
-    void forall(int64_t start, int64_t iters, F loop_body,
+    void forall(int64_t start, int64_t iters, const F loop_body,
         void (F::*mf)(int64_t,int64_t) const) {
       static_assert( C != nullptr, "GCE template arg cannot be null; need the GCE to store shared args");
     

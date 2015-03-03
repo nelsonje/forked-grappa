@@ -126,10 +126,12 @@ int main(int argc, char* argv[]) {
       // re-initialize
       forall(g, [](G::Vertex& v){ new (&v.data) BFSVertexData(); });
       
+      Metrics::start_tracing();
       GRAPPA_TIME_REGION(total_time) {
         activate(g->vs+root);
         NaiveGraphlabEngine<G,BFS>::run_sync(g);
       }
+      Metrics::stop_tracing();
       
       if (i == 0) Metrics::reset_all_cores(); // don't count the first one
     }

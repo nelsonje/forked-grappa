@@ -208,6 +208,7 @@ namespace Grappa {
         po.filter_in_thread_arg = NULL;
         ProfilerStartWithOptions( impl::get_next_profiler_filename(), &po );
         //ProfilerStart( Grappa_get_profiler_filename() );
+        LOG(INFO) << "Profiling started.";
       #if defined(VTRACE_SAMPLED) || defined(HISTOGRAM_SAMPLED)
         reset();
       #endif
@@ -223,6 +224,7 @@ namespace Grappa {
       #ifdef GOOGLE_PROFILER
         ProfilerStop( );
         impl::profile_handler(NULL);
+        LOG(INFO) << "Profiling stopped.";
         #ifdef VTRACE_SAMPLED
           VT_USER_END("sampling");
           sample();

@@ -35,7 +35,7 @@
 
 static int64_t nvtx_scale;
 
-static bool generate_ckpt = true;
+static bool generate_ckpt = false;
 
 static int64_t bfs_root[NBFS_max];
 

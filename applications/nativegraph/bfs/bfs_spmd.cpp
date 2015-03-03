@@ -91,8 +91,9 @@ void bfs(GlobalAddress<G> g, int nbfs, TupleGraph tg) {
     // intialize frontier with root
     frontier.push(root);
     
+    Metrics::start_tracing();
     double t = walltime();
-    
+
     // use 'SPMD' mode, this matches the style of the MPI reference code
     // (but of course the asynchronous message passing is implicit)
     on_all_cores([=]{
@@ -119,7 +120,19 @@ void bfs(GlobalAddress<G> g, int nbfs, TupleGraph tg) {
           forall<async,&joiner>(adj(g,vs+i), [i](G::Edge& e){
             auto j = e.id;
             // at the core where the vertex is...
-            delegate::call<async,&joiner>(e.ga, [i,j](G::Vertex& v){
+            if( e.ga.core() == Grappa::mycore() ) {
+                    G::Vertex& v = *(e.ga.pointer());
+              // note: no synchronization needed because 'call' is 
+              // guaranteed to be executed atomically because it 
+              // does no blocking operations
+              if (v->parent == -1) {
+                // claim parenthood
+                v->parent = i;
+                // add this vertex to the frontier for the next level
+                frontier.push(j);
+              }
+            } else {
+                    delegate::call<async,&joiner>(e.ga, [i,j](G::Vertex& v){
               // note: no synchronization needed because 'call' is 
               // guaranteed to be executed atomically because it 
               // does no blocking operations
@@ -130,7 +143,8 @@ void bfs(GlobalAddress<G> g, int nbfs, TupleGraph tg) {
                 frontier.push(j);
               }
             });
-          });
+            }
+            });
         }
         
         joiner.complete();
@@ -147,6 +161,8 @@ void bfs(GlobalAddress<G> g, int nbfs, TupleGraph tg) {
     }); // end of 'SPMD' region
     
     double this_total_time = walltime() - t;
+
+    Metrics::stop_tracing();
     LOG(INFO) << "(root=" << root << ", time=" << this_total_time << ")";
     total_time += this_total_time;
     
